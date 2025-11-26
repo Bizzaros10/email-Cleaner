@@ -1,0 +1,5 @@
+{
+  "name": "CleanList Pro",
+  "description": "A browser-based, high-performance email list cleaning tool. It consolidates multiple CSVs, deduplicates entries, and filters invalid, disposable, and role-based emails securely on your device.",
+  "requestFramePermissions": []
+}
