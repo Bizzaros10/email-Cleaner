@@ -132,18 +132,18 @@ const Dashboard: React.FC<DashboardProps> = ({ results, onReset }) => {
         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div>
                 <h3 className="text-xl font-bold text-slate-900">Your list is ready!</h3>
-                <p className="text-slate-500 mt-1">Download your clean list to import into your marketing tool.</p>
+                <p className="text-slate-500 mt-1">Download your clean list (emails only) to import into your marketing tool.</p>
             </div>
             <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
                  <button
-                    onClick={() => downloadCSV(validRecords, 'clean_list.csv')}
+                    onClick={() => downloadCSV(validRecords, 'clean_list.csv', ['email'])}
                     className="flex items-center justify-center space-x-2 bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors shadow-sm"
                 >
                     <Download className="w-5 h-5" />
                     <span>Download Clean List ({validRecords.length})</span>
                 </button>
                 <button
-                    onClick={() => downloadCSV(invalidRecords, 'dirty_list.csv')}
+                    onClick={() => downloadCSV(invalidRecords, 'dirty_list.csv', ['email', 'status'])}
                     className="flex items-center justify-center space-x-2 bg-slate-100 hover:bg-slate-200 text-slate-700 px-6 py-3 rounded-lg font-semibold transition-colors border border-slate-200"
                 >
                     <Download className="w-5 h-5" />

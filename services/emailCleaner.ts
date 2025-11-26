@@ -145,8 +145,20 @@ export const processFiles = async (files: File[]): Promise<ProcessingResult> => 
   };
 };
 
-export const downloadCSV = (data: EmailRecord[], filename: string) => {
-  const csv = Papa.unparse(data);
+export const downloadCSV = (data: EmailRecord[], filename: string, columns: string[] = []) => {
+  // Filter data to only include requested columns if specified
+  const exportData = columns.length > 0 
+    ? data.map(record => {
+        const filtered: any = {};
+        columns.forEach(col => {
+          // Handle potential missing values gracefully
+          filtered[col] = record[col as keyof EmailRecord] || '';
+        });
+        return filtered;
+      })
+    : data;
+
+  const csv = Papa.unparse(exportData);
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
   const link = document.createElement('a');
   const url = URL.createObjectURL(blob);
