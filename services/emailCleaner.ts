@@ -50,6 +50,40 @@ const parseFile = (file: File): Promise<any[]> => {
 };
 
 /**
+ * Helper to extract a normalized name from a row
+ */
+const extractName = (row: any): string => {
+  const keys = Object.keys(row);
+  const lowerKeys = keys.map(k => k.toLowerCase());
+  
+  // 1. Check for exact Name/Full Name matches
+  if (lowerKeys.includes('name')) return row[keys[lowerKeys.indexOf('name')]] || '';
+  if (lowerKeys.includes('full name')) return row[keys[lowerKeys.indexOf('full name')]] || '';
+  if (lowerKeys.includes('fullname')) return row[keys[lowerKeys.indexOf('fullname')]] || '';
+  
+  // 2. Check for First Name + Last Name combination
+  const firstIdx = lowerKeys.findIndex(k => k === 'first name' || k === 'firstname');
+  const lastIdx = lowerKeys.findIndex(k => k === 'last name' || k === 'lastname');
+  
+  if (firstIdx !== -1 && lastIdx !== -1) {
+      const first = row[keys[firstIdx]] || '';
+      const last = row[keys[lastIdx]] || '';
+      return `${first} ${last}`.trim();
+  }
+  
+  // 3. Fallback to just First Name if available
+  if (firstIdx !== -1) return row[keys[firstIdx]] || '';
+  
+  // 4. Fuzzy search for any key with 'name' (excluding email/file)
+  const fuzzyKey = keys.find(k => {
+      const lower = k.toLowerCase();
+      return lower.includes('name') && !lower.includes('email') && !lower.includes('file');
+  });
+  
+  return fuzzyKey ? row[fuzzyKey] || '' : '';
+};
+
+/**
  * Main function to ingest, consolidate, and clean data.
  */
 export const processFiles = async (files: File[]): Promise<ProcessingResult> => {
@@ -80,12 +114,11 @@ export const processFiles = async (files: File[]): Promise<ProcessingResult> => 
       [EmailStatus.TYPO_DOMAIN]: 0,
       [EmailStatus.DUPLICATE]: 0,
       [EmailStatus.MISSING_MX]: 0,
-      [EmailStatus.VALID]: 0, // Should stay 0 in breakdown, but kept for type safety
+      [EmailStatus.VALID]: 0,
     }
   };
 
   // Find the email column dynamically
-  // We look for a key that looks like 'email'
   const findEmailKey = (row: any): string | null => {
     const keys = Object.keys(row);
     return keys.find(k => k.toLowerCase().includes('email')) || null;
@@ -98,6 +131,7 @@ export const processFiles = async (files: File[]): Promise<ProcessingResult> => 
     const emailKey = findEmailKey(row);
     const rawEmail = emailKey ? String(row[emailKey]) : '';
     const normalizedEmail = rawEmail.toLowerCase().trim();
+    const name = extractName(row);
 
     let status = EmailStatus.VALID;
 
@@ -106,19 +140,8 @@ export const processFiles = async (files: File[]): Promise<ProcessingResult> => 
     } else if (uniqueEmails.has(normalizedEmail)) {
       status = EmailStatus.DUPLICATE;
     } else {
-      // Run validation logic
       status = validateEmail(normalizedEmail);
-      if (status === EmailStatus.VALID) {
-         // Only add to set if it's potentially valid to allow re-checking invalid ones if needed
-         // But usually, we only care about unique valid ones. 
-         // For a strict unique list, we add everything to the Set.
-         uniqueEmails.add(normalizedEmail);
-      } else {
-        // We also track duplicates of invalid emails? 
-        // Blueprint says "Deduplication... Remove any rows where email is repeated".
-        // So we add to set regardless.
-        uniqueEmails.add(normalizedEmail);
-      }
+      uniqueEmails.add(normalizedEmail);
     }
 
     // Update Stats
@@ -132,9 +155,10 @@ export const processFiles = async (files: File[]): Promise<ProcessingResult> => 
     processedRecords.push({
       original: rawEmail,
       email: normalizedEmail,
+      name: name,
       status,
       sourceFile: row._sourceFile,
-      ...row // Keep original data
+      ...row 
     });
   }
 
@@ -151,8 +175,13 @@ export const downloadCSV = (data: EmailRecord[], filename: string, columns: stri
     ? data.map(record => {
         const filtered: any = {};
         columns.forEach(col => {
-          // Handle potential missing values gracefully
-          filtered[col] = record[col as keyof EmailRecord] || '';
+          // Map to capitalized headers for specific fields
+          let header = col;
+          if (col === 'email') header = 'Email';
+          if (col === 'name') header = 'Name';
+          if (col === 'status') header = 'Status';
+          
+          filtered[header] = record[col as keyof EmailRecord] || '';
         });
         return filtered;
       })

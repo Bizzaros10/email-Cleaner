@@ -132,18 +132,18 @@ const Dashboard: React.FC<DashboardProps> = ({ results, onReset }) => {
         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div>
                 <h3 className="text-xl font-bold text-slate-900">Your list is ready!</h3>
-                <p className="text-slate-500 mt-1">Download your clean list (emails only) to import into your marketing tool.</p>
+                <p className="text-slate-500 mt-1">Download your clean list (Email, Name) to import into your marketing tool.</p>
             </div>
             <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
                  <button
-                    onClick={() => downloadCSV(validRecords, 'clean_list.csv', ['email'])}
+                    onClick={() => downloadCSV(validRecords, 'clean_list.csv', ['email', 'name'])}
                     className="flex items-center justify-center space-x-2 bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors shadow-sm"
                 >
                     <Download className="w-5 h-5" />
                     <span>Download Clean List ({validRecords.length})</span>
                 </button>
                 <button
-                    onClick={() => downloadCSV(invalidRecords, 'dirty_list.csv', ['email', 'status'])}
+                    onClick={() => downloadCSV(invalidRecords, 'dirty_list.csv', ['email', 'name', 'status'])}
                     className="flex items-center justify-center space-x-2 bg-slate-100 hover:bg-slate-200 text-slate-700 px-6 py-3 rounded-lg font-semibold transition-colors border border-slate-200"
                 >
                     <Download className="w-5 h-5" />
@@ -164,6 +164,7 @@ const Dashboard: React.FC<DashboardProps> = ({ results, onReset }) => {
                 <thead className="bg-slate-50 text-slate-500 font-medium">
                     <tr>
                         <th className="px-6 py-3">Email</th>
+                        <th className="px-6 py-3">Name</th>
                         <th className="px-6 py-3">Reason</th>
                         <th className="px-6 py-3">Source File</th>
                     </tr>
@@ -172,6 +173,7 @@ const Dashboard: React.FC<DashboardProps> = ({ results, onReset }) => {
                     {invalidRecords.slice(0, 10).map((record, idx) => (
                         <tr key={idx} className="hover:bg-slate-50/50">
                             <td className="px-6 py-3 font-mono text-slate-700">{record.email || record.original || '<empty>'}</td>
+                            <td className="px-6 py-3 text-slate-700">{record.name || '-'}</td>
                             <td className="px-6 py-3">
                                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-800`} 
                                       style={{ color: COLORS[record.status], backgroundColor: `${COLORS[record.status]}20` }}>
@@ -183,7 +185,7 @@ const Dashboard: React.FC<DashboardProps> = ({ results, onReset }) => {
                     ))}
                     {invalidRecords.length === 0 && (
                         <tr>
-                            <td colSpan={3} className="px-6 py-8 text-center text-slate-400">No rejected records found.</td>
+                            <td colSpan={4} className="px-6 py-8 text-center text-slate-400">No rejected records found.</td>
                         </tr>
                     )}
                 </tbody>

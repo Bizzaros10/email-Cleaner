@@ -11,6 +11,7 @@ export enum EmailStatus {
 export interface EmailRecord {
   original: string;
   email: string;
+  name: string; // Normalized name field
   status: EmailStatus;
   sourceFile: string;
   [key: string]: string | number; // Allow other columns to persist
