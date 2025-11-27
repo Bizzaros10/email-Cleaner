@@ -1,6 +1,6 @@
 import React from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
-import { Download, CheckCircle, XCircle, AlertTriangle, ShieldAlert, FileOutput } from 'lucide-react';
+import { Download, CheckCircle, XCircle, AlertTriangle, FileOutput } from 'lucide-react';
 import { ProcessingResult, EmailStatus } from '../types';
 import { downloadCSV } from '../services/emailCleaner';
 import StatsCard from './StatsCard';
